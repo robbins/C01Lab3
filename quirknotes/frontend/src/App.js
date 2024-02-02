@@ -38,12 +38,41 @@ function App() {
     getNotes()
   }, [])
 
-  const deleteNote = (entry) => {
+  const deleteNote = async (entry) => {
+    console.log(`${entry._id}`)
+    try {
+      await fetch("http://localhost:4000/deleteNote/" + entry._id, {
+        method: 'DELETE'
+      })
+      .then(async (response) => {
+        if (!response.ok) {
+          console.log("Failed to delete note: ", response.status)
+        } else {
+          deleteNoteState(entry._id)
+        }
+      })
+    } catch (error) {
+      console.log("Deleting all notes failed", error)
+    }
     // Code for DELETE here
   }
 
-  const deleteAllNotes = () => {
+  const deleteAllNotes = async () => {
     // Code for DELETE all notes here
+    try {
+      await fetch("http://localhost:4000/deleteAllNotes", {
+        method: 'DELETE'
+      })
+      .then(async (response) => {
+        if (!response.ok) {
+          console.log("Failed to delete all notes: ", response.status);
+        } else {
+          deleteAllNotesState()
+        }
+      })
+    } catch (error) {
+      console.log("Deleting all notes failed", error)
+    }
   }
 
   
@@ -72,16 +101,24 @@ function App() {
     setNotes((prevNotes) => [...prevNotes, {_id, title, content}])
   }
 
-  const deleteNoteState = () => {
+  const deleteNoteState = (_id) => {
     // Code for modifying state after DELETE here
+    setNotes((prevNotes) => prevNotes.filter((note) => note._id !== _id));
   }
 
   const deleteAllNotesState = () => {
     // Code for modifying state after DELETE all here
+    setNotes((prevNotes) => [])
   }
 
   const patchNoteState = (_id, title, content) => {
     // Code for modifying state after PATCH here
+    setNotes((prevNotes) => {
+      const index = prevNotes.findIndex((note => note._id === _id))
+      prevNotes[index].title = title;
+      prevNotes[index].content = content;
+      return [...prevNotes]
+    })
   }
 
   return (
@@ -130,7 +167,7 @@ function App() {
           initialNote={dialogNote}
           closeDialog={closeDialog}
           postNote={postNoteState}
-          // patchNote={patchNoteState}
+          patchNote={patchNoteState}
           />
 
       </header>
